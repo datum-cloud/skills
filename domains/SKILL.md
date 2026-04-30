@@ -82,4 +82,4 @@ Check `status.verification.dnsRecord` or `status.verification.httpToken` in the 
 
 ## See Also
 
-- [Datum Cloud Domains documentation](https://www.datum.net/docs/domain-dns/domains)
+- [Datum Cloud Domains documentation](https://www.datum.net/docs/domain-dns/domains.md)
