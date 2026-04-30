@@ -1,6 +1,6 @@
 # Skill: DNS Zones & Records
 
-> **MCP integration:** pending (future phase — will be wired into `agent.datum.net` capability manifest once MCP is ready)
+> **MCP integration:** pending (future phase — will be wired into `agents.datum.net` capability manifest once MCP is ready)
 
 ## Description
 
