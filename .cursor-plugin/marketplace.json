@@ -1,0 +1,13 @@
+{
+  "name": "datum-cloud",
+  "owner": {
+    "name": "Datum Cloud"
+  },
+  "plugins": [
+    {
+      "name": "datum-cloud",
+      "source": "./",
+      "description": "Skills for the Datum Cloud to provide Internet superpowers for every agent."
+    }
+  ]
+}

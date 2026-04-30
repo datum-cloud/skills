@@ -1,0 +1,15 @@
+{
+  "$schema": "https://code.claude.com/schemas/marketplace.json",
+  "name": "datum-cloud",
+  "owner": {
+    "name": "Datum Cloud",
+    "url": "https://www.datum.net/"
+  },
+  "plugins": [
+    {
+      "name": "datum-cloud",
+      "source": "./",
+      "description": "Skills for the Datum Cloud to provide Internet superpowers for every agent."
+    }
+  ]
+}
