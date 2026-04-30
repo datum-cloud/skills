@@ -171,4 +171,4 @@ dig www.example.com @ns1.datumdomains.net
 
 ## See Also
 
-- [Datum Cloud DNS documentation](https://www.datum.net/docs/domain-dns/dns)
+- [Datum Cloud DNS documentation](https://www.datum.net/docs/domain-dns/dns.md)
