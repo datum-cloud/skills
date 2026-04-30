@@ -1,6 +1,6 @@
 # Skill: AI Edge (WAF + Traffic Policies)
 
-> **MCP integration:** pending (future phase — will be wired into `agent.datum.net` capability manifest once MCP is ready)
+> **MCP integration:** pending (future phase — will be wired into `agents.datum.net` capability manifest once MCP is ready)
 
 ## Description
 
@@ -260,6 +260,6 @@ datumctl apply -f traffic-control.yaml --project my-project
 
 ## See Also
 
-- [Datum Cloud AI Edge documentation](https://www.datum.net/docs/ai-edge/waf)
+- [Datum Cloud AI Edge documentation](https://www.datum.net/docs/ai-edge/overview.md)
 - [Envoy Gateway SecurityPolicy](https://gateway.envoyproxy.io/docs/api/extension_types/#securitypolicy)
 - [OWASP Core Rule Set](https://coreruleset.org/)
