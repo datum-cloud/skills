@@ -1,6 +1,6 @@
 {
   "name": "datum-cloud",
-  "description": "Skills for the Datum Cloud platform: Compute, DNS, AI Edge, WAF",
+  "description": "Skills for the Datum Cloud platform: Compute, DNS, Application Load Balancer, WAF",
   "version": "1.0.0",
   "author": {
     "name": "Datum Cloud"

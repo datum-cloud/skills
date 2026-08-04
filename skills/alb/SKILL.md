@@ -1,10 +1,10 @@
-# Skill: AI Edge (WAF + Traffic Policies)
+# Skill: Application Load Balancer (WAF + Traffic Policies)
 
 > **MCP integration:** pending (future phase — will be wired into `agents.datum.net` capability manifest once MCP is ready)
 
 ## Description
 
-Manage AI Edge traffic protection and security policies in Datum Cloud — attach Web Application Firewall (WAF), authentication, authorization, and traffic management policies to gateways and HTTP routes. Policies attach via `targetRefs` to existing `Gateway` and `HTTPRoute` resources, providing defense-in-depth against attacks, rate limiting, and traffic control.
+Manage Application Load Balancer traffic protection and security policies in Datum Cloud — attach Web Application Firewall (WAF), authentication, authorization, and traffic management policies to gateways and HTTP routes. Policies attach via `targetRefs` to existing `Gateway` and `HTTPRoute` resources, providing defense-in-depth against attacks, rate limiting, and traffic control.
 
 ## Capabilities
 
@@ -72,9 +72,9 @@ datumctl describe httproute <name> --project <project-id>
   - `spec.ruleSets[]` — one or more rule set configurations:
     - `type` — currently supports `OWASPCoreRuleSet`
     - `owaspCoreRuleSet` — OWASP CRS configuration:
-      - `paranoiaLevels` — paranoia level thresholds (1–4; higher = stricter, more false positives)
+      - `paranoiaLevels` — CRS sensitivity (`detection` and `blocking`, each 1–4; higher = stricter, more false positives). Keep `detection >= blocking`.
       - `ruleExclusions` — list of OWASP ModSecurity rule IDs to disable
-      - `scoreThresholds` — anomaly score thresholds for inbound and outbound blocking
+      - `scoreThresholds` — anomaly score thresholds (`inbound` / `outbound`) for blocking
   - `spec.targetRefs[]` — policy attachment targets (required):
     - `group` — `gateway.networking.k8s.io`
     - `kind` — `Gateway` or `HTTPRoute`
@@ -163,10 +163,10 @@ spec:
     - type: OWASPCoreRuleSet
       owaspCoreRuleSet:
         paranoiaLevels:
-          inbound: 2
-          outbound: 2
+          detection: 2
+          blocking: 1
         scoreThresholds:
-          inbound: 8
+          inbound: 5
           outbound: 4
   targetRefs:
     - group: gateway.networking.k8s.io
@@ -253,13 +253,13 @@ datumctl apply -f traffic-control.yaml --project my-project
 - Use `sectionName` in `targetRefs` to scope a policy to a specific listener or route rule
 - Run `datumctl auth can-i create trafficprotectionpolicies --project <project-id>` before attempting creates (kubectl users only)
 - Run `datumctl diff -f` before `apply` for any changes
-- `--dry-run=server` validates the manifest against the API before committing
+- Validate example manifests with `datumctl apply -f <file> --dry-run=server --project <project-id>` so the API rejects unknown fields before you commit
 - `delete` has no confirmation prompt — always verify the resource name first
 - Start WAF with `mode: Observe` and tune `ruleExclusions` before switching to `mode: Enforce`
-- Increasing `paranoiaLevels` beyond 2 significantly increases false positive rate — test thoroughly
+- Increasing `paranoiaLevels.blocking` beyond 2 significantly increases false positive rate — test thoroughly. Prefer `detection` one level above `blocking` to preview stricter rules.
 
 ## See Also
 
-- [Datum Cloud AI Edge documentation](https://www.datum.net/docs/ai-edge/overview.md)
+- [Datum Cloud Application Load Balancer documentation](https://www.datum.net/docs/alb/overview.md)
 - [Envoy Gateway SecurityPolicy](https://gateway.envoyproxy.io/docs/api/extension_types/#securitypolicy)
 - [OWASP Core Rule Set](https://coreruleset.org/)
