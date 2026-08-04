@@ -1,10 +1,10 @@
-# Skill: AI Edge (WAF + Traffic Policies)
+# Skill: Application Load Balancer (WAF + Traffic Policies)
 
 > **MCP integration:** pending (future phase — will be wired into `agents.datum.net` capability manifest once MCP is ready)
 
 ## Description
 
-Manage AI Edge traffic protection and security policies in Datum Cloud — attach Web Application Firewall (WAF), authentication, authorization, and traffic management policies to gateways and HTTP routes. Policies attach via `targetRefs` to existing `Gateway` and `HTTPRoute` resources, providing defense-in-depth against attacks, rate limiting, and traffic control.
+Manage Application Load Balancer traffic protection and security policies in Datum Cloud — attach Web Application Firewall (WAF), authentication, authorization, and traffic management policies to gateways and HTTP routes. Policies attach via `targetRefs` to existing `Gateway` and `HTTPRoute` resources, providing defense-in-depth against attacks, rate limiting, and traffic control.
 
 ## Capabilities
 
@@ -260,6 +260,6 @@ datumctl apply -f traffic-control.yaml --project my-project
 
 ## See Also
 
-- [Datum Cloud AI Edge documentation](https://www.datum.net/docs/ai-edge/overview.md)
+- [Datum Cloud Application Load Balancer documentation](https://www.datum.net/docs/alb/overview.md)
 - [Envoy Gateway SecurityPolicy](https://gateway.envoyproxy.io/docs/api/extension_types/#securitypolicy)
 - [OWASP Core Rule Set](https://coreruleset.org/)

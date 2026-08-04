@@ -237,7 +237,7 @@ datumctl apply -f inference-connection-limits.yaml --project my-project
 - Always use `datumctl` — never `kubectl`
 - `--project` is required for all operations
 - `gateway.envoyproxy.io/v1alpha1` is unstable; field names may change between releases
-- `ClientTrafficPolicy` attaches to `Gateway` only — it cannot attach to `HTTPRoute`; use `SecurityPolicy` or `BackendTrafficPolicy` from the ai-edge skill for route-level policies
+- `ClientTrafficPolicy` attaches to `Gateway` only — it cannot attach to `HTTPRoute`; use `SecurityPolicy` or `BackendTrafficPolicy` from the alb skill for route-level policies
 - Use `sectionName` in `targetRefs` when a Gateway has multiple listeners on different ports or protocols — omitting it applies the policy to all listeners on that Gateway
 - TLS certificates (server certs and CA bundles for mTLS) must be stored as Kubernetes Secrets and referenced by the Gateway listener or by `spec.tls.clientValidation.caCertificateRefs` — `ClientTrafficPolicy` configures *how* TLS works, not *which* server certificate to serve
 - Increasing TLS strictness (`minVersion: "1.3"`, mTLS) can break existing clients — run `datumctl diff` and test against a non-production gateway first
@@ -248,7 +248,7 @@ datumctl apply -f inference-connection-limits.yaml --project my-project
 
 ## See Also
 
-- [Datum Cloud Edge documentation](https://www.datum.net/docs/ai-edge/overview.md)
+- [Datum Cloud Application Load Balancer documentation](https://www.datum.net/docs/alb/overview.md)
 - [Envoy Gateway ClientTrafficPolicy API reference](https://gateway.envoyproxy.io/docs/api/extension_types/#clienttrafficpolicy)
 - [Envoy Gateway TLS termination task](https://gateway.envoyproxy.io/docs/tasks/security/tls-termination/)
 - [Envoy Gateway mTLS task](https://gateway.envoyproxy.io/docs/tasks/security/mutual-tls/)

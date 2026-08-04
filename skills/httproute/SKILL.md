@@ -330,15 +330,15 @@ datumctl apply -f header-injection.yaml --project my-project
 - A `RequestRedirect` filter returns a redirect response directly to the client — combine it with an empty `backendRefs` list (no backend needed for redirect-only rules)
 - Use `sectionName` in `spec.parentRefs[]` to bind a route to a specific listener when a Gateway has both HTTP and HTTPS listeners; binding only to `http` is the standard pattern for redirect routes
 - `gateway.networking.k8s.io/v1` is stable GA — unlike the `gateway.envoyproxy.io` policy CRDs it is not subject to breaking alpha changes
-- Policy attachments from the ai-edge skill (`SecurityPolicy`, `BackendTrafficPolicy`, `TrafficProtectionPolicy`) reference `HTTPRoute` resources by name via `targetRefs` — create the HTTPRoute first before attaching policies
+- Policy attachments from the alb skill (`SecurityPolicy`, `BackendTrafficPolicy`, `TrafficProtectionPolicy`) reference `HTTPRoute` resources by name via `targetRefs` — create the HTTPRoute first before attaching policies
 - Run `datumctl diff -f` before `apply` for any changes
 - `--dry-run=server` validates the manifest against the API before committing
 - `delete` has no confirmation prompt — always verify the resource name first
 
 ## See Also
 
-- [Datum Cloud Edge documentation](https://www.datum.net/docs/ai-edge/overview.md)
+- [Datum Cloud Application Load Balancer documentation](https://www.datum.net/docs/alb/overview.md)
 - [Kubernetes Gateway API HTTPRoute reference](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.HTTPRoute)
 - [Gateway API traffic management tasks](https://gateway-api.sigs.k8s.io/guides/traffic-splitting/)
-- [ai-edge skill](../ai-edge/SKILL.md) — WAF, JWT auth, rate limiting, and circuit breaker policies that attach to HTTPRoute via `targetRefs`
+- [alb skill](../alb/SKILL.md) — WAF, JWT auth, rate limiting, and circuit breaker policies that attach to HTTPRoute via `targetRefs`
 - [client-traffic skill](../client-traffic/SKILL.md) — TLS termination, HTTP/3, and connection settings that attach to the parent Gateway

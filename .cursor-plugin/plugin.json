@@ -7,6 +7,6 @@
     "email": "support@datum.net",
     "url": "https://www.datum.net/"
   },
-  "keywords": ["network", "datum", "ctl", "compute", "dns", "firewall", "ai edge"],
+  "keywords": ["network", "datum", "ctl", "compute", "dns", "firewall", "alb"],
   "logo": "logo.svg"
 }
