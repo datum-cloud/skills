@@ -76,6 +76,15 @@ datumctl alb route backend add my-app --path /api --endpoint https://api-2.examp
 
 `route update` replaces every origin on that path and leaves other routes alone.
 
+A route takes up to 16 origins and splits traffic across them, with one constraint that decides whether a pool works: **every origin in a route must agree on the Host header sent upstream.** NetworkService origins need no Host rewrite, so pools of those are fine. A URL origin takes its Host from its own hostname, so two URL origins on different hostnames conflict — and the load balancer does not reject the change. It keeps serving what it published last and explains why in the status message, while the reason still reads as though it were waiting.
+
+Two ways round it, one of which is a trap:
+
+- **Give each origin its own route.** Safe.
+- **Set a Host override on the route.** The origins then agree and it publishes, but all of them receive the same Host, so any origin that serves by hostname (Vercel, Netlify, Fly.io, Cloudflare Pages) answers the wrong site or a 404. It looks like it worked.
+
+A connector origin must be the only origin in its route.
+
 ### Traffic protection, headers, auth, logs
 
 ```bash
@@ -86,7 +95,9 @@ echo 'secret' | datumctl alb auth set my-app --user admin --password-stdin
 datumctl alb logs my-app --since 1h --code 502
 ```
 
-Passwords are never printed and must come from stdin — never put one in a command line or a manifest.
+Passwords are never printed and must come from stdin — never put one in a command line or a manifest. Every `--user` in one command gets the same password, and `auth set` replaces the whole user list rather than merging, so pass every user you want to keep.
+
+`tpp` is an alias for `waf`. `--paranoia` sets the blocking and detection levels together and takes 1 to 4, but the portal offers only 1 and 2.
 
 ## Reading status without getting it wrong
 
@@ -163,12 +174,27 @@ datumctl get securitypolicies --project <project-id>
 datumctl describe securitypolicy <name> --project <project-id>
 ```
 
+## Driving this from a script or an agent
+
+Four behaviours will catch you out if you key off exit status or assume a prompt:
+
+- **`create` can exit non-zero having created the load balancer.** With the default `--wait`, a timeout waiting for the generated hostname is an error, but the object exists. Do not retry `create` — run `describe` first, or pass `--no-wait` and poll.
+- **`create` is not atomic.** If the load balancer is created and traffic protection then fails to attach, the command exits non-zero and leaves an unprotected load balancer behind. Check `waf describe` after a failed create.
+- **Confirmation prompts assume yes with no terminal.** `route remove` and `route backend remove` proceed in CI. Only `delete` refuses without `--yes`.
+- **Adding a second URL origin succeeds even when it cannot be published.** The Host conflict above is caught at publish time, not at write time, so check `describe` afterwards.
+
+Every writing command takes `--dry-run`, which validates against the API and discards the change. Use it before anything destructive.
+
+Failures print a named exit code — `exit status 6 # ALB_INVALID`. The names are `ALB_USAGE` (2), `ALB_FORBIDDEN` (3), `ALB_NOT_FOUND` (4), `ALB_CONFLICT` (5), `ALB_INVALID` (6), `ALB_UNAVAILABLE` (8), `ALB_ABORTED` (9).
+
 ## Constraints & Guardrails
 
 - Always use `datumctl` — never `kubectl`
 - `--project` is required, or select one with `datumctl ctx use`
 - `networking.datumapis.com/v1alpha` and `gateway.envoyproxy.io/v1alpha1` are unstable; field names may change between releases
-- Prefer `datumctl alb` over raw manifests. Writing route or filter shapes the portal does not recognise makes a load balancer read-only in the UI
+- Prefer `datumctl alb` over raw manifests
+- The portal edits one route with one origin and cannot show more. It does not lock the form: editing the origin, TLS or redirect settings there rebuilds the route list from the fields it models and drops extra routes, extra origins, weights and path matches, reporting success. After adding a route or a pool, tell the user that hostnames, protection and auth stay safe to edit in the portal and origin, TLS and redirect do not
+- Traffic protection takes paranoia 1 to 4 here; the portal offers only 1 and 2
 - Run `datumctl diff -f` before `apply`, and validate with `--dry-run=server`
 - `delete` has no confirmation prompt — verify the name first. Deleting a load balancer also removes its traffic protection policy and basic auth
 - Start traffic protection in `mode: Observe` on a live site, watch real traffic, then move to `Enforce`. Raise paranoia one level at a time; above 2 the false-positive rate climbs sharply
