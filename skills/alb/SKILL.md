@@ -21,31 +21,17 @@ An Application Load Balancer is a **product built from several objects**, not a 
 ## Before you run anything: install the plugin
 
 `datumctl alb` is a plugin, not built in. Without it every command below fails
-with `unknown command "alb"` or `plugin alb is not a recorded managed plugin`.
-
-Once it is published to the Datum catalog:
+with `unknown command "alb"`.
 
 ```bash
 datumctl plugin install alb
+datumctl alb version
 ```
 
-Until then, install a release archive, or build it:
-
-```bash
-# from a release
-datumctl plugin install datum-cloud/network-services-operator@<tag>
-
-# or from source
-git clone https://github.com/datum-cloud/network-services-operator
-cd network-services-operator && make build-plugin
-cp bin/datumctl-alb ~/bin/          # anywhere on PATH
-datumctl plugin trust alb
-```
-
-The `trust` step is required for a binary datumctl did not install itself:
-running a plugin hands it a credentials helper, so datumctl blocks any
-unmanaged `datumctl-*` binary on PATH until you allow it. Confirm with
-`datumctl alb version`, which needs no login, no project and no network.
+That installs it from the official Datum catalog as a managed plugin, so
+datumctl tracks it, verifies the download, and upgrades it with
+`datumctl plugin upgrade alb`. `alb version` needs no login, no project and no
+network, so run it first whenever anything else fails.
 
 ## What an ALB is made of
 
