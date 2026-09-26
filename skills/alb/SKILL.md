@@ -1,6 +1,6 @@
 # Skill: Application Load Balancer
 
-> **Datum's own assistant** has read-only Application Load Balancer tools of its own, entitled through the platform catalog, currently on staging. This skill is for driving `datumctl` directly, which is a different surface and works everywhere.
+> **Datum's own assistant** can answer questions about a load balancer directly, using read-only tools of its own. This skill is a different surface: it teaches you to drive `datumctl` yourself.
 
 ## Description
 
