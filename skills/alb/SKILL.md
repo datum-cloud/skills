@@ -1,6 +1,6 @@
 # Skill: Application Load Balancer
 
-> **MCP integration:** available. Datum's assistant is entitled to read-only ALB tools through the platform's capability catalog; this skill covers driving `datumctl` directly.
+> **Datum's own assistant** has read-only Application Load Balancer tools of its own, entitled through the platform catalog, currently on staging. This skill is for driving `datumctl` directly, which is a different surface and works everywhere.
 
 ## Description
 
@@ -17,6 +17,35 @@ An Application Load Balancer is a **product built from several objects**, not a 
 - Read access logs for one load balancer
 - Preview every change before applying it
 - Attach advanced Envoy Gateway policies the plugin does not cover
+
+## Before you run anything: install the plugin
+
+`datumctl alb` is a plugin, not built in. Without it every command below fails
+with `unknown command "alb"` or `plugin alb is not a recorded managed plugin`.
+
+Once it is published to the Datum catalog:
+
+```bash
+datumctl plugin install alb
+```
+
+Until then, install a release archive, or build it:
+
+```bash
+# from a release
+datumctl plugin install datum-cloud/network-services-operator@<tag>
+
+# or from source
+git clone https://github.com/datum-cloud/network-services-operator
+cd network-services-operator && make build-plugin
+cp bin/datumctl-alb ~/bin/          # anywhere on PATH
+datumctl plugin trust alb
+```
+
+The `trust` step is required for a binary datumctl did not install itself:
+running a plugin hands it a credentials helper, so datumctl blocks any
+unmanaged `datumctl-*` binary on PATH until you allow it. Confirm with
+`datumctl alb version`, which needs no login, no project and no network.
 
 ## What an ALB is made of
 
@@ -98,6 +127,17 @@ datumctl alb logs my-app --since 1h --code 502
 Passwords are never printed and must come from stdin — never put one in a command line or a manifest. Every `--user` in one command gets the same password, and `auth set` replaces the whole user list rather than merging, so pass every user you want to keep.
 
 `tpp` is an alias for `waf`. `--paranoia` sets the blocking and detection levels together and takes 1 to 4, but the portal offers only 1 and 2.
+
+## What you cannot get here
+
+**Metrics.** There is no command for request rates, latency percentiles, error
+rates over time, or the traffic protection breakdown, and no API to build one
+on yet — the platform's metric routes are defined but return 501. Do not infer
+a trend from `alb logs`, which returns at most 500 lines from one window. Send
+people to the Metrics tab for that load balancer in the cloud portal.
+
+**Activity and audit history.** `alb logs` is request traffic only. Control-plane
+changes are `datumctl activity`.
 
 ## Reading status without getting it wrong
 
