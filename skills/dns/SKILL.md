@@ -16,6 +16,7 @@ Manage DNS zones and record sets in Datum Cloud — create, inspect, update, and
 - Preview changes before applying
 - Delete DNS zones and record sets safely
 - Validate DNS propagation via status conditions and external dig queries
+- Check for DNSSEC before a nameserver cutover, and walk the user through turning it off
 - Check permissions before acting
 
 ## Key Commands
@@ -155,6 +156,31 @@ dig www.example.com @ns1.datumdomains.net
 # Datum authoritative nameservers: ns1–ns4.datumdomains.net
 ```
 
+## DNSSEC and nameserver cutover
+
+Datum DNS does not currently support DNSSEC. Zones are not signed, and `DS`, `DNSKEY`, `RRSIG`, `NSEC`, and `NSEC3` are not valid record types.
+
+If the registrar still publishes a `DS` record when the nameservers move to Datum, validating resolvers return `SERVFAIL` and the domain stops resolving for most users. Check before you tell a user to switch nameservers:
+
+```bash
+dig +short DS example.com
+# Empty output: DNSSEC is off, safe to cut over
+# Any output: DNSSEC is on, stop and follow the steps below
+```
+
+If the domain exists as a `Domain` resource, `datumctl describe domain <name> --project <project-id>` also shows `status.registration.dnssec.enabled` and `status.registration.dnssec.ds[]` from the registry.
+
+When DNSSEC is on, walk the user through these steps in order:
+
+1. Remove the `DS` record (or turn off DNSSEC) at the registrar, and at the current DNS provider if it manages DNSSEC. The current provider keeps serving the zone during this step.
+2. Wait until `dig +short DS example.com` returns nothing, then one more full `DS` TTL (`dig DS example.com` shows it; 86400s for `.com`/`.net`).
+3. Create the zone on Datum and import records.
+4. Change the nameservers to `ns1`–`ns4.datumdomains.net`.
+
+Diagnose a domain that broke after cutover: `dig example.com` returns `SERVFAIL` but `dig +cd example.com` returns answers. The fix is to remove the `DS` record at the registrar; resolvers recover as the cached `DS` expires.
+
+A subdomain delegated to Datum from a signed parent zone hosted elsewhere works as long as the parent has no `DS` record for that subdomain.
+
 ## Constraints & Guardrails
 
 - Always use `datumctl` — never `kubectl`
@@ -167,8 +193,12 @@ dig www.example.com @ns1.datumdomains.net
 - Run `datumctl diff -f` before `apply` for any changes
 - `--dry-run=server` validates the manifest against the API before committing
 - `delete` has no confirmation prompt — always verify the resource name first
+- Datum DNS does not currently support DNSSEC. Never suggest creating `DS`, `DNSKEY`, `RRSIG`, `NSEC`, or `NSEC3` records, and never imply DNSSEC can be enabled
+- Before recommending a nameserver change to Datum, check for a `DS` record (see DNSSEC and nameserver cutover). If one exists, the user must remove it and wait out its TTL first
+- Zone imports skip `DS`, `DNSKEY`, `RRSIG`, `NSEC`, and `NSEC3` records with a warning. This is expected; tell the user rather than retrying
 - `dns.networking.miloapis.com/v1alpha1` is unstable; field names may change between releases
 
 ## See Also
 
 - [Datum Cloud DNS documentation](https://www.datum.net/docs/domain-dns/dns.md)
+- [DNSSEC on Datum](https://www.datum.net/docs/domain-dns/dns#dnssec)
