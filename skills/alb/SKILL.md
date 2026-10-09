@@ -250,7 +250,7 @@ Failures print a named exit code — `exit status 6 # ALB_INVALID`. The names ar
 - `--project` is required, or select one with `datumctl ctx use`
 - `networking.datumapis.com/v1alpha` and `gateway.envoyproxy.io/v1alpha1` are unstable; field names may change between releases
 - Prefer `datumctl alb` over raw manifests
-- The portal manages one route: the pool of origins on `/`, with weights, the algorithm and health checks. Those are the same fields `datumctl alb` writes, so either can change them. Once a load balancer has a second route, a path match or a per-origin filter, the portal refuses to edit its origins, TLS, redirect and Host override and points to `datumctl`; hostnames, protection, auth, the algorithm and health checks stay editable there. Tell the user to expect that lock after you add a route
+- The portal manages one route: the pool of origins on `/`, with weights, the algorithm and health checks. Those are the same fields `datumctl alb` writes, so either can change them. Once a load balancer has a second route, a path match or a per-origin filter, the portal locks its origins, weights, algorithm, health checks, TLS, redirect and Host override and points to `datumctl`; hostnames, protection and auth stay editable there. Tell the user to expect that lock after you add a route
 - Traffic protection takes paranoia 1 to 4 here; the portal offers only 1 and 2
 - Run `datumctl diff -f` before `apply`, and validate with `--dry-run=server`
 - `delete` has no confirmation prompt — verify the name first. Deleting a load balancer also removes its traffic protection policy and basic auth
