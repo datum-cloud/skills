@@ -205,22 +205,24 @@ metadata:
   namespace: default
 spec:
   rateLimit:
-    - action: Deny
-      limit: { requests: 100, unit: Hour }
-      clientSelectors:
-        - headers: [{ name: x-user-id }]
+    type: Local
+    local:
+      rules:
+        - limit: { requests: 100, unit: Minute }
   circuitBreaker:
     maxConnections: 500
     maxPendingRequests: 100
-    maxRequests: 1000
-    maxRetries: 3
+    maxParallelRequests: 1000
+    maxParallelRetries: 3
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: my-app
 ```
 
-Datum attaches a `BackendTrafficPolicy` of its own to the load balancer's routing when the load balancer has a network service origin, an algorithm or health checks set. That policy is more specific than one attached to the Gateway, and the two are not merged, so **a Gateway-level policy like the one above stops applying** to that load balancer. Setting an algorithm or turning on health checks in the portal is enough to switch it off. Check for those before relying on a Gateway-level rate limit or circuit breaker.
+A local limit counts requests on each edge node separately, so the limit a client actually meets depends on how many nodes serve it.
+
+Datum attaches a `BackendTrafficPolicy` of its own to the load balancer's routing when the load balancer has a network service origin, an algorithm or health checks set. It merges into a Gateway-level policy like the one above, and Datum's settings win where both set the same field, so set the algorithm and health checks with `datumctl alb update` rather than in this policy.
 
 ### Authentication beyond basic auth
 
