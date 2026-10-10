@@ -13,6 +13,7 @@ An Application Load Balancer is a **product built from several objects**, not a 
 - Create a load balancer and get the hostname to point DNS at
 - Attach custom hostnames and follow their verification, DNS and certificate progress
 - Add routes and the origins behind them, by URL or by network service
+- Split a route's traffic across several origins by weight, choose the load balancing algorithm, and turn on passive health checks
 - Configure traffic protection (WAF), request headers and basic authentication
 - Read access logs for one load balancer
 - Preview every change before applying it
@@ -42,6 +43,9 @@ network, so run it first whenever anything else fails.
 | A custom hostname | `spec.hostnames[]`, progress in `status.hostnameStatuses[]` |
 | A route | One `spec.rules[]` entry: a path prefix and its origins |
 | An origin | A URL, or a `NetworkService` and one of its declared **port names** |
+| An origin's share of a route | `weight` on that origin, relative to the route's others; 1 when unset |
+| The load balancing algorithm | `spec.loadBalancer`, one setting for every route |
+| Health checks | `spec.healthCheck.passive`, one setting for every route |
 | Force HTTPS | An extra redirect rule with no origins |
 | Traffic protection | A `TrafficProtectionPolicy` attached to the load balancer |
 | Basic auth | A `SecurityPolicy` and a `<name>-basic-auth` Secret |
@@ -85,20 +89,45 @@ datumctl alb route add my-app --path /api --endpoint https://api.example.com
 datumctl alb route update my-app --path / --network-service storefront --port http
 datumctl alb route remove my-app --path /api
 datumctl alb route backend add my-app --path /api --endpoint https://api-2.example.com
+datumctl alb route backend add my-app --path /api --endpoint https://api-3.example.com --weight 3
+datumctl alb route backend update my-app --path /api --endpoint https://api-2.example.com --weight 0
+datumctl alb route backend list my-app
 ```
 
 `--port` is the port **name** the service declares (`http`), never a number. Datum never creates a `NetworkService`; naming one that does not exist fails before anything is written.
 
-`route update` replaces every origin on that path and leaves other routes alone.
+`route update` replaces every origin on that path and leaves other routes alone. Origins that stay in the list keep their weight, TLS hostname and filters.
 
-A route takes up to 16 origins and splits traffic across them, with one constraint that decides whether a pool works: **every origin in a route must agree on the Host header sent upstream.** NetworkService origins need no Host rewrite, so pools of those are fine. A URL origin takes its Host from its own hostname, so two URL origins on different hostnames conflict — and the load balancer does not reject the change. It keeps serving what it published last and explains why in the status message, while the reason still reads as though it were waiting.
+A route takes up to 16 origins and splits requests across them by weight. Weights are relative: origins at 1 and 3 get 25% and 75%, and an origin with no weight counts as 1. `route backend list` shows each origin's `WEIGHT` and `SHARE`.
 
-Two ways round it, one of which is a trap:
+- `route backend add` without `--weight` gives the new origin the average weight of the pool, so it joins with an even share rather than a sliver.
+- `--weight 0` drains an origin: it stays in the pool and gets no requests. A change that would leave every origin on a route at 0 is refused.
 
-- **Give each origin its own route.** Safe.
-- **Set a Host override on the route.** The origins then agree and it publishes, but all of them receive the same Host, so any origin that serves by hostname (Vercel, Netlify, Fly.io, Cloudflare Pages) answers the wrong site or a 404. It looks like it worked.
+Each URL origin is sent its own hostname as the Host header, so origins on different hostnames can share a route. A Host override on the route (`alb header set my-app Host=...`) is the trap: it sends the same Host to every origin, so in a pool spanning several hostnames any origin that serves by hostname (Vercel, Netlify, Fly.io, Cloudflare Pages) answers the wrong site or a 404. It looks like it worked.
 
 A connector origin must be the only origin in its route.
+
+### Load balancing and health checks
+
+Both apply to every route on the load balancer and are set with `alb update`. `describe` shows them.
+
+```bash
+datumctl alb update my-app --algorithm round-robin
+datumctl alb update my-app --hash-header X-User-ID
+datumctl alb update my-app --algorithm default
+datumctl alb update my-app --health-checks
+datumctl alb update my-app --consecutive-5xx 3 --base-ejection-time 1m --max-ejection-percent 50
+datumctl alb update my-app --no-health-checks
+```
+
+`--algorithm` takes `round-robin`, `random`, `least-request` or `consistent-hash`. Least request applies when nothing is set, and `default` returns to that. `consistent-hash` keeps a client on one origin by its source IP, or by the header `--hash-header` names. A test run from one machine has one IP, so under consistent hash it lands on one origin every time; that is not a broken split.
+
+Passive health checks are off unless turned on. An endpoint that returns a run of 5xx responses (5 by default) gets no requests for a while (30s at first, longer each time it repeats), then gets them again. At most 50% of an origin's endpoints are ejected at once by default. There are no active probes. Any tuning flag turns the checks on and keeps the values already set.
+
+Know what the checks do not do before promising resilience:
+
+- **They act inside one origin.** They move requests between that origin's endpoints: the addresses its hostname resolves to, or a network service's members. **They never move an origin's share to another origin.** The weights decide that, so a broken origin keeps failing its share until you drain or remove it.
+- **An origin with one endpoint gains little.** Once fewer than half of an origin's endpoints are left, a route whose origins are all URLs spreads requests over every endpoint again, failing ones included. A route with a network service origin fails those requests fast instead.
 
 ### Traffic protection, headers, auth, logs
 
@@ -176,20 +205,24 @@ metadata:
   namespace: default
 spec:
   rateLimit:
-    - action: Deny
-      limit: { requests: 100, unit: Hour }
-      clientSelectors:
-        - headers: [{ name: x-user-id }]
+    type: Local
+    local:
+      rules:
+        - limit: { requests: 100, unit: Minute }
   circuitBreaker:
     maxConnections: 500
     maxPendingRequests: 100
-    maxRequests: 1000
-    maxRetries: 3
+    maxParallelRequests: 1000
+    maxParallelRetries: 3
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: my-app
 ```
+
+A local limit counts requests on each edge node separately, so the limit a client actually meets depends on how many nodes serve it.
+
+Datum attaches a `BackendTrafficPolicy` of its own to the load balancer's routing when the load balancer has a network service origin, an algorithm or health checks set. It merges into a Gateway-level policy like the one above, and Datum's settings win where both set the same field, so set the algorithm and health checks with `datumctl alb update` rather than in this policy.
 
 ### Authentication beyond basic auth
 
@@ -207,7 +240,7 @@ Four behaviours will catch you out if you key off exit status or assume a prompt
 - **`create` can exit non-zero having created the load balancer.** With the default `--wait`, a timeout waiting for the generated hostname is an error, but the object exists. Do not retry `create` — run `describe` first, or pass `--no-wait` and poll.
 - **`create` is not atomic.** If the load balancer is created and traffic protection then fails to attach, the command exits non-zero and leaves an unprotected load balancer behind. Check `waf describe` after a failed create.
 - **Confirmation prompts assume yes with no terminal.** `route remove` and `route backend remove` proceed in CI. Only `delete` refuses without `--yes`.
-- **Adding a second URL origin succeeds even when it cannot be published.** The Host conflict above is caught at publish time, not at write time, so check `describe` afterwards.
+- **A change is accepted before it is published.** Validation at write time does not cover everything the platform checks when it publishes, so run `describe` after changing origins and confirm the status is not `Error`.
 
 Every writing command takes `--dry-run`, which validates against the API and discards the change. Use it before anything destructive.
 
@@ -219,7 +252,7 @@ Failures print a named exit code — `exit status 6 # ALB_INVALID`. The names ar
 - `--project` is required, or select one with `datumctl ctx use`
 - `networking.datumapis.com/v1alpha` and `gateway.envoyproxy.io/v1alpha1` are unstable; field names may change between releases
 - Prefer `datumctl alb` over raw manifests
-- The portal edits one route with one origin and cannot show more. It does not lock the form: editing the origin, TLS or redirect settings there rebuilds the route list from the fields it models and drops extra routes, extra origins, weights and path matches, reporting success. After adding a route or a pool, tell the user that hostnames, protection and auth stay safe to edit in the portal and origin, TLS and redirect do not
+- The portal manages one route: the pool of origins on `/`, with weights, the algorithm and health checks. Those are the same fields `datumctl alb` writes, so either can change them. Once a load balancer has a second route, a path match or a per-origin filter, the portal locks its origins, weights, algorithm, health checks, TLS, redirect and Host override and points to `datumctl`; hostnames, protection and auth stay editable there. Tell the user to expect that lock after you add a route
 - Traffic protection takes paranoia 1 to 4 here; the portal offers only 1 and 2
 - Run `datumctl diff -f` before `apply`, and validate with `--dry-run=server`
 - `delete` has no confirmation prompt — verify the name first. Deleting a load balancer also removes its traffic protection policy and basic auth
