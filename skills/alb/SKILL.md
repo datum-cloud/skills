@@ -94,7 +94,7 @@ datumctl alb route backend update my-app --path /api --endpoint https://api-2.ex
 datumctl alb route backend list my-app
 ```
 
-`--port` is the port **name** the service declares (`http`), never a number. Datum never creates a `NetworkService`; naming one that does not exist fails before anything is written.
+`--port` is the port **name** the service declares (`http`), never a number. The load balancer never creates a `NetworkService`; naming one that does not exist fails before anything is written. Create it first with `datumctl network service create` — see the [networks skill](../networks/SKILL.md).
 
 `route update` replaces every origin on that path and leaves other routes alone. Origins that stay in the list keep their weight, TLS hostname and filters.
 
@@ -258,7 +258,7 @@ Failures print a named exit code — `exit status 6 # ALB_INVALID`. The names ar
 - `delete` has no confirmation prompt — verify the name first. Deleting a load balancer also removes its traffic protection policy and basic auth
 - Start traffic protection in `mode: Observe` on a live site, watch real traffic, then move to `Enforce`. Raise paranoia one level at a time; above 2 the false-positive rate climbs sharply
 - Never put a password in a command line or a manifest — `--password-stdin` only
-- Datum never creates a `NetworkService` or a `Domain` for you
+- The load balancer never creates a `NetworkService` or a `Domain` for you; create a service with `datumctl network service create`
 - A certificate cannot be issued until the hostname resolves publicly to the load balancer, so a stuck certificate is usually a DNS problem
 
 ## See Also
