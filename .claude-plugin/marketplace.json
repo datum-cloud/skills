@@ -9,7 +9,7 @@
     {
       "name": "datum-cloud",
       "source": "./",
-      "description": "Skills for the Datum Cloud to provide Internet superpowers for every agent."
+      "description": "Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server"
     }
   ]
 }
