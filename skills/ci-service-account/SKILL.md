@@ -104,6 +104,10 @@ datum-mcp works in that account's own project, so no organization or project
 selection is needed. Tokens expire, so a long-running server needs the token
 refreshed.
 
+The token is a live credential. Never print it, echo it, write it to a file
+or log, or include it in your reply. Pass it only through the environment as
+shown.
+
 ## Troubleshooting
 
 | Symptom | Fix |
