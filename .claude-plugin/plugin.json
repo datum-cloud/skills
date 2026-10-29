@@ -9,6 +9,7 @@
   "homepage": "https://www.datum.net/docs/agents/overview",
   "repository": "https://github.com/datum-cloud/skills",
   "license": "Apache-2.0",
+  "privacyPolicyUrl": "https://www.datum.net/legal/privacy",
   "mcpServers": {
     "datum-mcp": {
       "command": "datum-mcp",
