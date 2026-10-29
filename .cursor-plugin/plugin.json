@@ -1,12 +1,19 @@
 {
   "name": "datum-cloud",
-  "version": "0.0.1",
-  "description": "Skills for the Datum Cloud to provide Internet superpowers for every agent.",
+  "version": "1.2.0",
+  "description": "Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server, with skills for CI service accounts and handing questions to Patch",
   "author": {
     "name": "datum-cloud",
     "email": "support@datum.net",
     "url": "https://www.datum.net/"
   },
-  "keywords": ["network", "datum", "ctl", "compute", "dns", "firewall", "alb"],
+  "keywords": [
+    "datum",
+    "datumctl",
+    "datum-mcp",
+    "sign-in",
+    "service-account",
+    "ci"
+  ],
   "logo": "logo.svg"
 }

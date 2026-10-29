@@ -1,7 +1,7 @@
 {
   "name": "datum-cloud",
   "description": "Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server, with skills for CI service accounts and handing questions to Patch",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": {
     "name": "Datum Cloud",
     "url": "https://www.datum.net/"
@@ -18,5 +18,6 @@
       "type": "http",
       "url": "https://www.datum.net/docs/mcp"
     }
-  }
+  },
+  "icon": ".claude-plugin/icon.png"
 }
