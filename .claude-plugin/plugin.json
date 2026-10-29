@@ -1,8 +1,22 @@
 {
   "name": "datum-cloud",
-  "description": "Skills for the Datum Cloud platform: Compute, Networks, DNS, Application Load Balancer, WAF",
-  "version": "1.0.0",
+  "description": "Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server, with skills for CI service accounts and handing questions to Patch",
+  "version": "1.1.0",
   "author": {
-    "name": "Datum Cloud"
+    "name": "Datum Cloud",
+    "url": "https://www.datum.net/"
+  },
+  "homepage": "https://www.datum.net/docs/agents/overview",
+  "repository": "https://github.com/datum-cloud/skills",
+  "license": "Apache-2.0",
+  "mcpServers": {
+    "datum-mcp": {
+      "command": "datum-mcp",
+      "args": []
+    },
+    "datum-cloud-docs": {
+      "type": "http",
+      "url": "https://www.datum.net/docs/mcp"
+    }
   }
 }
