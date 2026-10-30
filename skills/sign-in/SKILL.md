@@ -95,7 +95,8 @@ than changing their active context, unless they asked you to switch.
 
 Or run the server's `onboard-to-project` prompt, which does all three. A
 `DATUM_PROJECT` environment variable wins over a project set with `projects
-set`.
+set`. datum-mcp reads its organization from `DATUM_ORG`, not datumctl's
+`DATUM_ORGANIZATION`.
 
 ## When something fails
 
