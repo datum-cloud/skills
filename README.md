@@ -16,11 +16,10 @@ Install via the [plugin marketplace](https://code.claude.com/docs/en/discover-pl
 /plugin install datum-cloud@datum-cloud
 ```
 
-The Claude Code plugin also connects Claude to your Datum Cloud projects:
+The Claude Code plugin also connects Claude to Datum Cloud:
 
-- It starts the [Datum MCP server](https://github.com/datum-cloud/datum-mcp), so there is no MCP setup to do by hand. Install the `datum-mcp` binary first (`brew install datum-cloud/tap/datum-mcp`); it signs you in through your browser on first use.
-- It adds the hosted [Datum Docs MCP](https://www.datum.net/docs/agents/datum-mcp#datum-docs-mcp) server, so Claude answers from the current documentation.
-- `sign-in` gets you signed in with `datumctl` and `datum-mcp` and pointed at the right organization and project.
+- It adds the hosted [Datum Docs MCP](https://www.datum.net/docs/agents/datum-mcp#datum-docs-mcp) server, so Claude answers from the current documentation. There is no MCP setup to do by hand.
+- `sign-in` gets you signed in with `datumctl` and pointed at the right organization and project. Install `datumctl` first (`brew install datum-cloud/tap/datumctl`).
 - `ci-service-account` sets up a service account for GitHub Actions, other CI systems and headless agents.
 - `datum-cloud-assistant` tells Claude when to hand a question to Patch, Datum's own assistant.
 
