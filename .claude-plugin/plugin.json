@@ -1,7 +1,7 @@
 {
   "name": "datum-cloud",
-  "description": "Sign in to Datum Cloud and connect Claude to your projects through the Datum MCP server, with skills for CI service accounts and handing questions to Patch",
-  "version": "1.2.0",
+  "description": "Sign in to Datum Cloud with datumctl and answer from the Datum docs, with skills for CI service accounts and handing questions to Patch",
+  "version": "1.3.0",
   "author": {
     "name": "Datum Cloud",
     "url": "https://www.datum.net/"
@@ -11,10 +11,6 @@
   "license": "Apache-2.0",
   "privacyPolicyUrl": "https://www.datum.net/legal/privacy",
   "mcpServers": {
-    "datum-mcp": {
-      "command": "datum-mcp",
-      "args": []
-    },
     "datum-cloud-docs": {
       "type": "http",
       "url": "https://www.datum.net/docs/mcp"
